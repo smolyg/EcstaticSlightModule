@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 
 #returns DF or JSON with options strikes near price within depth provided for number of days out
-def put_recommendation(security, price, depth, max_days_out):
+def put_recommendation(security, price, depth, max_days_out, format="html"):
   today = date.today()
   all_puts = pd.DataFrame()
   exps = security.options  #get the full list of expiration dates
@@ -29,13 +29,19 @@ def put_recommendation(security, price, depth, max_days_out):
   all_puts = all_puts.query('strike < @price')
   all_puts['Profit'] = round(
       ((all_puts['bid'] + all_puts['ask']) / 2) / all_puts['strike'] * 100, 2)
-  return all_puts.to_html()
+
+  if format=="html":
+    return all_puts.to_html()
+  else:
+    return all_puts.to_json()
+    
+    
 
 
-def opt_chain(ticker):
+def opt_chain(ticker, format="html"):
   stock = yf.Ticker(ticker)
   price = (float(stock.info["bid"]) + float(stock.info["ask"])) / 2
-  return put_recommendation(stock, price, 20, 90)
+  return put_recommendation(stock, price, 20, 90, format)
 
   #return stock.info['longBusinessSummary']
 
@@ -52,7 +58,16 @@ def stock(ticker):
   if ticker == "":
     return "please use followin URL: /stock/ticker"
   else:
-    return opt_chain(ticker)
+    return opt_chain(ticker,"html")
+
+#examle to call this function /stock/SOXL
+@app.route('/optionsjson/<ticker>')
+def optionsjson(ticker):
+  if ticker == "":
+    return "please use followin URL: /stock/ticker"
+  else:
+    return opt_chain(ticker,"json")
+
 
 
 app.run(host='0.0.0.0', port=81)
