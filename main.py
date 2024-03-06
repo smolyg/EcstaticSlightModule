@@ -1,3 +1,4 @@
+from types import EllipsisType
 from flask import Flask
 from datetime import datetime, timedelta
 from datetime import date
@@ -48,8 +49,10 @@ def index():
 #examle to call this function /stock/SOXL
 @app.route('/stock/<ticker>')
 def stock(ticker):
-  #return 'hello %s!' % ticker
-  return opt_chain(ticker)
+  if ticker == "":
+    return "please use followin URL: /stock/ticker"
+  else:
+    return opt_chain(ticker)
 
 
 app.run(host='0.0.0.0', port=81)
